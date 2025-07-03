@@ -98,8 +98,8 @@ const SummaryForm = ({ enableNext }) => {
         <p>Get Started with the basic information</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
-        <div className="grid gap-2 mt-5">
-          <div className="flex justify-between">
+        <div className="grid gap-3 mt-5">
+          <div className="flex justify-between items-end">
             <Label htmlFor="summary">
               Summary <span className="text-red-600">*</span>
             </Label>

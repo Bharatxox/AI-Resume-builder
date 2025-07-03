@@ -56,7 +56,10 @@ const FormSection = () => {
       ) : null}
 
       {/* Working Experience Form */}
-      <WorkExperienceForm />
+
+      {activeFormIndex == 3 ? (
+        <WorkExperienceForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
 
       {/* Skills Forms */}
       <SkillsForm />

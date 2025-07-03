@@ -11,7 +11,7 @@ import HobbiesSection from "./Section/HobbiesSection";
 import LanguagesSection from "./Section/LanguagesSection";
 
 const ResumePreview = () => {
-  const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
+  const { resumeInfo } = useContext(ResumeInfoContext);
   return (
     <div
       className="shadow-xl border-1 h-full p-14 border-t-[20px]"
