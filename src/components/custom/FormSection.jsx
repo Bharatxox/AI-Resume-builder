@@ -65,10 +65,10 @@ const FormSection = () => {
       <SkillsForm />
 
       {/* Education Form */}
-      <EducationForm />
+      <EducationForm enableNext={(v) => setEnableNext(v)} />
 
       {/* Project Form */}
-      <ProjectForm />
+      <ProjectForm enableNext={(v) => setEnableNext(v)} />
 
       {/* Certification Form */}
       <CertificationForm />

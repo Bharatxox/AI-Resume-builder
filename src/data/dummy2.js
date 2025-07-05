@@ -38,17 +38,6 @@ export default {
       percentage: "", // ✅ Optional (can omit or leave empty)
       description: "",
     },
-    {
-      id: 2,
-      universityName: "Sanskar Educational Group",
-      startDate: "2020",
-      endDate: "2023",
-      degree: "Diploma",
-      major: "Mechanical Engineering",
-      cgpa: "",
-      percentage: "82", // ✅ Optional
-      description: "",
-    },
   ],
   skills: [
     {

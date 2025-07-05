@@ -50,7 +50,7 @@ const WorkExperienceForm = ({ enableNext }) => {
     setExperiences(updated);
     setResumeInfo((prev) => ({
       ...prev,
-      experience: updated.map(({ saved, ...rest }) => rest),
+      experience: updated.map(({ ...rest }) => rest),
     }));
     enableNext(false);
   };
@@ -107,7 +107,7 @@ Translating design wireframes into high-quality, functional code.
       // Sync with context
       setResumeInfo((prev) => ({
         ...prev,
-        experience: updated.map(({ saved, ...rest }) => rest),
+        experience: updated.map(({ ...rest }) => rest),
       }));
     } catch (err) {
       console.error("AI generation failed", err);
