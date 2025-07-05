@@ -23,9 +23,12 @@ const WorkExperience = ({ experience, themeColor }) => {
             </p>
           </p>
           <ul className="list-disc pl-6">
-            {exp.workSummary.split("\n").map((point, i) => (
-              <li key={i}>{point}</li>
-            ))}
+            {exp.workSummary
+              .split("\n")
+              .filter((point) => point.trim() !== "")
+              .map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
           </ul>
         </div>
       ))}

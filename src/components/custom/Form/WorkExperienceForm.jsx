@@ -1,20 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
-// import GlobalApi from "../../../../service/GlobalApi";
-// import { useParams } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import GlobalApi from "../../../../service/GlobalApi";
 import { ResumeInfoContext } from "../../../context/ResumeInfoContext";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Checkbox } from "../../ui/checkbox";
-import { Loader2, Stars } from "lucide-react";
-// import { toast } from "sonner";
+import { Loader2, Plus, Stars, Trash } from "lucide-react";
+import { generateContent } from "../../../../service/GeminiService";
+import { toast } from "sonner";
+import { useParams } from "react-router-dom";
 
 const WorkExperienceForm = ({ enableNext }) => {
-  // const params = useParams();
+  const params = useParams();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [experiences, setExperiences] = useState([
     {
+      id: Date.now(),
       title: "",
       companyName: "",
       city: "",
@@ -23,6 +25,8 @@ const WorkExperienceForm = ({ enableNext }) => {
       endDate: "",
       currentlyWorking: false,
       workSummary: "",
+      saved: false,
+      isNew: false,
     },
   ]);
   const [saving, setSaving] = useState(false);
@@ -30,7 +34,11 @@ const WorkExperienceForm = ({ enableNext }) => {
 
   useEffect(() => {
     if (resumeInfo?.experience?.length > 0) {
-      setExperiences(resumeInfo.experience);
+      const updated = resumeInfo?.experience.map((exp) => ({
+        ...exp,
+        saved: true,
+      }));
+      setExperiences(updated);
     }
   }, [resumeInfo]);
 
@@ -38,31 +46,116 @@ const WorkExperienceForm = ({ enableNext }) => {
     const { name, value, type, checked } = e.target;
     const updated = [...experiences];
     updated[index][name] = type === "checkbox" ? checked : value;
+    updated[index].saved = false;
     setExperiences(updated);
-    setResumeInfo({
-      ...resumeInfo,
-      experience: updated,
-    });
+    setResumeInfo((prev) => ({
+      ...prev,
+      experience: updated.map(({ saved, ...rest }) => rest),
+    }));
     enableNext(false);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSaving(true);
-    const data = {
-      data: { experience: experiences },
+  const handleAddExperience = () => {
+    const last = experiences[experiences.length - 1];
+    if (!last.saved) return; // Prevent adding unless last is saved
+
+    const newExperience = {
+      id: Date.now() + Math.random(),
+      title: "",
+      companyName: "",
+      city: "",
+      state: "",
+      startDate: "",
+      endDate: "",
+      currentlyWorking: false,
+      workSummary: "",
+      saved: false,
+      isNew: true,
     };
-    console.log(data);
-    // GlobalApi.UpdateResumeDetails(params?.resumeId, data)
-    //   .then((resp) => {
-    //     toast.success("Experience Updated");
-    //     enableNext(true);
-    //   })
-    //   .catch((err) => {
-    //     console.log("Error msg", err);
-    //     toast.error("Error updating experience");
-    //   })
-    //   .finally(() => setSaving(false));
+    setExperiences([...experiences, newExperience]);
+  };
+
+  const handleGenerateFromAI = async (index) => {
+    setGenerating(true);
+    try {
+      const exp = experiences[index];
+      const prompt = `Generate a concise and technical 4–6 line work summary for a resume based on the following job details:
+
+Job Title: ${exp.title}
+Company: ${exp.companyName}
+City: ${exp.city}, State: ${exp.state}
+
+The summary should:
+- Focus on core technical responsibilities and achievements
+- Avoid placeholders or markdown (no asterisks, no bold)
+- Avoid general phrases like “collaborated with team”
+- Use bullet-style sentences (separated by line breaks), not long paragraphs
+- Return only the summary
+
+Example format:
+Developing and maintaining interactive, responsive frontend components using React and Tailwind CSS.
+Translating design wireframes into high-quality, functional code.
+...`;
+
+      const result = await generateContent(prompt);
+
+      const updated = [...experiences];
+      updated[index].workSummary = result;
+      updated[index].saved = false;
+      setExperiences(updated);
+
+      // Sync with context
+      setResumeInfo((prev) => ({
+        ...prev,
+        experience: updated.map(({ saved, ...rest }) => rest),
+      }));
+    } catch (err) {
+      console.error("AI generation failed", err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    setSaving(true);
+
+    const updated = experiences.map((exp) => ({ ...exp, saved: true }));
+    setExperiences(updated);
+
+    const data = {
+      data: {
+        experience: updated.map(({ ...rest }) => rest), // omit `saved`
+      },
+    };
+
+    GlobalApi.UpdateResumeDetails(params?.resumeId, data)
+      .then((resp) => {
+        console.log("Work experience updated:", resp);
+        enableNext(true);
+        toast.success("Experience updated!");
+      })
+      .catch((err) => {
+        console.error("Update error:", err);
+        toast.error("Failed to update experience.");
+      })
+      .finally(() => {
+        setSaving(false);
+      });
+
+    // Sync to context as well (optional but good)
+    setResumeInfo((prev) => ({
+      ...prev,
+      experience: updated.map(({ ...rest }) => rest),
+    }));
+  };
+
+  const handleRemoveExperience = (idToRemove) => {
+    const updated = experiences.filter((exp) => exp.id !== idToRemove);
+    setExperiences(updated);
+    setResumeInfo((prev) => ({
+      ...prev,
+      experience: updated.map(({ ...rest }) => rest),
+    }));
   };
 
   return (
@@ -76,7 +169,7 @@ const WorkExperienceForm = ({ enableNext }) => {
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {experiences.map((exp, idx) => (
-          <div key={idx} className="space-y-4 pt-4">
+          <div key={exp.id} className="space-y-4 pt-4 border-1 rounded-lg p-5">
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>
@@ -155,6 +248,16 @@ const WorkExperienceForm = ({ enableNext }) => {
                 name="currentlyWorking"
                 checked={exp.currentlyWorking}
                 onChange={(e) => handleChange(idx, e)}
+                onCheckedChange={(checked) => {
+                  const e = {
+                    target: {
+                      name: "currentlyWorking",
+                      type: "checkbox",
+                      checked,
+                    },
+                  };
+                  handleChange(idx, e);
+                }}
               />
               <Label>Currently Working Here</Label>
             </div>
@@ -167,7 +270,7 @@ const WorkExperienceForm = ({ enableNext }) => {
                 <Button
                   type="button"
                   variant="outline"
-                  // onClick={handleGenerateFromAI}
+                  onClick={() => handleGenerateFromAI(idx)}
                   disabled={generating}
                 >
                   Generate from AI{" "}
@@ -185,15 +288,35 @@ const WorkExperienceForm = ({ enableNext }) => {
                 required
               />
             </div>
+            {exp.isNew && experiences.length > 1 && (
+              <div className="flex justify-end">
+                <Button
+                  className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleRemoveExperience(exp.id)}
+                >
+                  <Trash />
+                  Remove
+                </Button>
+              </div>
+            )}
           </div>
         ))}
 
-        <div className="flex justify-end pt-2">
+        <div className="">
           <div className="flex justify-between gap-2">
-            <Button type="button" variant="outline">
-              Add
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddExperience}
+              disabled={!experiences[experiences.length - 1].saved}
+            >
+              <Plus />
+              Add More Experience
             </Button>
-            <Button type="submit" disabled={saving}>
+
+            <Button type="button" onClick={handleSubmit} disabled={saving}>
               {saving ? <Loader2 className="animate-spin" /> : "Save"}
             </Button>
           </div>
