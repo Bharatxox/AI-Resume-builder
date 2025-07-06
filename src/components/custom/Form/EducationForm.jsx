@@ -10,6 +10,11 @@ import { useParams } from "react-router-dom";
 import { Textarea } from "../../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
 import { generateContent } from "../../../../service/GeminiService";
+import { ChevronDownIcon } from "lucide-react";
+import { Calendar } from "../../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
 const EducationForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -19,8 +24,8 @@ const EducationForm = ({ enableNext }) => {
     {
       id: Date.now(),
       universityName: "",
-      startDate: "",
-      endDate: "",
+      startDate: null,
+      endDate: null,
       degree: "",
       major: "",
       cgpa: "",
@@ -39,6 +44,7 @@ const EducationForm = ({ enableNext }) => {
       const updated = resumeInfo.education.map((edu) => ({
         ...edu,
         saved: true,
+        isNew: true,
       }));
       setEducationList(updated);
     }
@@ -75,8 +81,8 @@ const EducationForm = ({ enableNext }) => {
       {
         id: Date.now() + Math.random(),
         universityName: "",
-        startDate: "",
-        endDate: "",
+        startDate: null,
+        endDate: null,
         degree: "",
         major: "",
         cgpa: "",
@@ -184,6 +190,20 @@ Focus on:
     }));
   };
 
+  const handleDateChange = (index, field, value) => {
+    if (!value) return;
+    const formattedDate = format(value, "MMM yyyy"); // → "Jul 2025"
+    const updatedList = [...educationList];
+    updatedList[index][field] = formattedDate;
+    setEducationList(updatedList);
+    setResumeInfo((prev) => ({
+      ...prev,
+      education: updatedList.map(({ ...rest }) => rest),
+    }));
+
+    enableNext(false);
+  };
+
   return (
     <div
       className="p-5 shadow-lg rounded-lg border-t-green-500 mt-5"
@@ -231,21 +251,55 @@ Focus on:
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>Start Date *</Label>
-                <Input
-                  name="startDate"
-                  value={edu.startDate}
-                  onChange={(e) => handleChange(idx, e)}
-                  required
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal cursor-pointer"
+                    >
+                      {edu.startDate
+                        ? format(new Date(edu.startDate), "MMMM yyyy")
+                        : `Select Date`}
+                      <ChevronDownIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={edu.startDate}
+                      onSelect={(date) =>
+                        handleDateChange(idx, "startDate", date)
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid gap-2">
                 <Label>End Date *</Label>
-                <Input
-                  name="endDate"
-                  value={edu.endDate}
-                  onChange={(e) => handleChange(idx, e)}
-                  required
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal cursor-pointer"
+                    >
+                      {edu.endDate
+                        ? format(new Date(edu.endDate), "MMMM yyyy")
+                        : "Select Date"}
+                      <ChevronDownIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={edu.endDate}
+                      onSelect={(date) =>
+                        handleDateChange(idx, "endDate", date)
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 

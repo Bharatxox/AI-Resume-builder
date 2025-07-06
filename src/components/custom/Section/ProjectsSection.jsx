@@ -14,16 +14,24 @@ const ProjectsSection = ({ projects, themeColor }) => {
           <div className="flex justify-between">
             <h3 className="font-bold">{project.title}</h3>
             {project.link && (
-              <a href={project.link} className="text-blue-600 ml-4">
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 ml-4"
+              >
                 Link
               </a>
             )}
           </div>
           <p className="italic">{project.technologies.join(" | ")}</p>
           <ul className="list-disc pl-6">
-            {project.description.split("\n").map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
+            {project.description
+              .split("\n")
+              .filter((line) => line.trim() !== "")
+              .map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
           </ul>
         </div>
       ))}

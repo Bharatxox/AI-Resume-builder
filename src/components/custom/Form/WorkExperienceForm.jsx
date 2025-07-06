@@ -26,7 +26,7 @@ const WorkExperienceForm = ({ enableNext }) => {
       currentlyWorking: false,
       workSummary: "",
       saved: false,
-      isNew: false,
+      isNew: true,
     },
   ]);
   const [saving, setSaving] = useState(false);
@@ -37,6 +37,7 @@ const WorkExperienceForm = ({ enableNext }) => {
       const updated = resumeInfo?.experience.map((exp) => ({
         ...exp,
         saved: true,
+        isNew: true,
       }));
       setExperiences(updated);
     }
