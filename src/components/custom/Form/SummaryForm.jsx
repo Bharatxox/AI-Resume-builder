@@ -8,14 +8,28 @@ import { Button } from "../../ui/button";
 import { Loader2, Stars } from "lucide-react";
 import { toast } from "sonner";
 import { generateContent } from "../../../../service/GeminiService";
+import { Checkbox } from "../../ui/checkbox";
 
 const SummaryForm = ({ enableNext }) => {
   const params = useParams();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [summary, setSummary] = useState("");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [skip, setSkip] = useState(false);
+
+  useEffect(() => {
+    enableNext(false);
+  }, []);
+
+  useEffect(() => {
+    if (skip) {
+      setResumeInfo((prev) => ({
+        ...prev,
+        summary: "",
+      }));
+    }
+  }, [skip]);
 
   useEffect(() => {
     if (resumeInfo?.summary) {
@@ -29,15 +43,20 @@ const SummaryForm = ({ enableNext }) => {
     setSummary(value);
 
     // 🔁 Update context
-    setResumeInfo({
-      ...resumeInfo,
+    setResumeInfo((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setSaving(true);
+
+    setResumeInfo((prev) => ({
+      ...prev,
+      summary: summary, // Restore from local state
+    }));
 
     const data = {
       data: { summary: summary },
@@ -51,7 +70,8 @@ const SummaryForm = ({ enableNext }) => {
           toast.success("Detail Updated");
         },
         (err) => {
-          console.log("Error msg", err);
+          console.error("Error msg", err);
+          toast.error("Failed to update summary.");
         }
       )
       .finally(() => setSaving(false));
@@ -82,7 +102,8 @@ const SummaryForm = ({ enableNext }) => {
       });
       toast.success("Summary generated!");
     } catch (error) {
-      toast.error("Failed to generate summary.", error);
+      console.error(error);
+      toast.error("Failed to generate summary.");
     } finally {
       setGenerating(false);
     }
@@ -93,9 +114,22 @@ const SummaryForm = ({ enableNext }) => {
       className="p-5 shadow-lg rounded-lg border-t-sky-400 mt-5"
       style={{ borderTopWidth: "5px" }}
     >
-      <div className=" max-w-xl mx-auto">
-        <h2 className="font-bold text-lg">Personal Details</h2>
-        <p>Get Started with the basic information</p>
+      <div className="max-w-xl mx-auto flex justify-between">
+        <div className="">
+          <h2 className="font-bold text-lg">Personal Details</h2>
+          <p>Get Started with the basic information</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={skip}
+            onCheckedChange={(checked) => {
+              setSkip(checked);
+              enableNext(checked);
+            }}
+          />
+
+          <Label>Skip this section</Label>
+        </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         <div className="grid gap-3 mt-5">
@@ -107,7 +141,7 @@ const SummaryForm = ({ enableNext }) => {
               type="button"
               variant="outline"
               onClick={handleGenerateFromAI}
-              disabled={generating}
+              disabled={generating || skip}
             >
               Generate from AI{" "}
               {generating ? <Loader2 className="animate-spin" /> : <Stars />}
@@ -119,11 +153,12 @@ const SummaryForm = ({ enableNext }) => {
             name="summary"
             value={summary}
             onChange={handleChange}
+            disabled={skip}
           />
         </div>
 
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || skip}>
             {saving ? <Loader2 className="animate-spin" /> : "Save"}
           </Button>
         </div>

@@ -62,21 +62,34 @@ const FormSection = () => {
       ) : null}
 
       {/* Skills Forms */}
-      <SkillsForm enableNext={(v) => setEnableNext(v)} />
+      {activeFormIndex == 4 ? (
+        <SkillsForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
 
       {/* Education Form */}
-      <EducationForm enableNext={(v) => setEnableNext(v)} />
+      {activeFormIndex == 5 ? (
+        <EducationForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
 
       {/* Project Form */}
-      <ProjectForm enableNext={(v) => setEnableNext(v)} />
+      {activeFormIndex == 6 ? (
+        <ProjectForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
 
       {/* Certification Form */}
-      <CertificationForm />
+      {activeFormIndex == 7 ? (
+        <CertificationForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
+
       {/* Hobbies Form */}
-      <HobbiesForm />
+      {activeFormIndex == 8 ? (
+        <HobbiesForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
 
       {/* Language Form */}
-      <LanguageForm />
+      {activeFormIndex == 9 ? (
+        <LanguageForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
     </div>
   );
 };

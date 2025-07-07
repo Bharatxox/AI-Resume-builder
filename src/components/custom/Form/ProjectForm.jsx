@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import GlobalApi from "../../../../service/GlobalApi";
 import { generateContent } from "../../../../service/GeminiService";
 import { TagsInput } from "react-tag-input-component";
+import { Checkbox } from "../../ui/checkbox";
 
 const ProjectForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -29,8 +30,10 @@ const ProjectForm = ({ enableNext }) => {
 
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [skip, setSkip] = useState(false);
 
   useEffect(() => {
+    // enableNext(true);
     if (resumeInfo?.projects?.length > 0) {
       const updated = resumeInfo.projects.map((proj) => ({
         ...proj,
@@ -47,6 +50,7 @@ const ProjectForm = ({ enableNext }) => {
   }, [resumeInfo]);
 
   const handleChange = (index, e) => {
+    enableNext(false);
     const { name, value } = e.target;
     const updated = [...projects];
     updated[index][name] = value;
@@ -57,7 +61,6 @@ const ProjectForm = ({ enableNext }) => {
       ...prev,
       projects: updated,
     }));
-    enableNext(false);
   };
 
   const handleAddProject = () => {
@@ -77,13 +80,13 @@ const ProjectForm = ({ enableNext }) => {
   };
 
   const handleRemoveProject = (idToRemove) => {
+    enableNext(false);
     const updated = projects.filter((proj) => proj.id !== idToRemove);
     setProjects(updated);
     setResumeInfo((prev) => ({
       ...prev,
       projects: updated,
     }));
-    enableNext(false);
   };
 
   const handleGenerateFromAI = async (index) => {
@@ -122,6 +125,8 @@ Requirements:
   };
 
   const handleSubmit = () => {
+    // enableNext(true); //change this later when i update the database in STRAPI ///////////////////////////////////////////////////////////
+    // e.preventDefault();
     setSaving(true);
 
     const updated = projects.map((proj) => ({
@@ -146,6 +151,7 @@ Requirements:
       })
       .finally(() => {
         setSaving(false);
+        enableNext(true);
       });
 
     setResumeInfo((prev) => ({
@@ -159,9 +165,27 @@ Requirements:
       className="p-5 shadow-lg rounded-lg border-t-yellow-500 mt-5"
       style={{ borderTopWidth: "5px" }}
     >
-      <div className="max-w-xl mx-auto">
-        <h2 className="font-bold text-lg">Projects</h2>
-        <p>List your top technical projects</p>
+      <div className="max-w-xl mx-auto flex justify-between">
+        <div className="">
+          <h2 className="font-bold text-lg">Projects</h2>
+          <p>List your top technical projects</p>
+        </div>
+        <div className="flex items-center gap-2 justify-end">
+          <Checkbox
+            checked={skip}
+            onCheckedChange={(checked) => {
+              setSkip(checked);
+              enableNext(checked);
+              if (checked) {
+                setResumeInfo((prev) => ({
+                  ...prev,
+                  projects: [],
+                }));
+              }
+            }}
+          />
+          <Label>Skip this section</Label>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
@@ -174,12 +198,14 @@ Requirements:
                 value={proj.title}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
             <div className="grid gap-2">
               <Label>Technologies (comma separated) *</Label>
               <TagsInput
+                disabled={skip}
                 value={
                   Array.isArray(proj.technologies) ? proj.technologies : []
                 }
@@ -208,7 +234,7 @@ Requirements:
                   type="button"
                   variant="outline"
                   onClick={() => handleGenerateFromAI(idx)}
-                  disabled={generating}
+                  disabled={generating || skip}
                 >
                   Generate from AI{" "}
                   {generating ? (
@@ -223,6 +249,7 @@ Requirements:
                 value={proj.description}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -233,6 +260,7 @@ Requirements:
                 value={proj.link}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -243,6 +271,7 @@ Requirements:
                   variant="outline"
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
                   onClick={() => handleRemoveProject(proj.id)}
+                  disabled={skip}
                 >
                   <Trash className="mr-2 h-4 w-4" />
                   Remove
@@ -257,12 +286,16 @@ Requirements:
             type="button"
             variant="outline"
             onClick={handleAddProject}
-            disabled={!projects[projects.length - 1].saved}
+            disabled={!projects[projects.length - 1].saved || skip}
           >
             <Plus />
             Add More Project
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={saving}>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving || skip}
+          >
             {saving ? <Loader2 className="animate-spin" /> : "Save"}
           </Button>
         </div>

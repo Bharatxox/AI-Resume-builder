@@ -120,7 +120,10 @@ const SkillsForm = ({ enableNext }) => {
       .catch(() => {
         toast.error("Failed to update skills.");
       })
-      .finally(() => setSaving(false));
+      .finally(() => {
+        setSaving(false);
+        enableNext(true);
+      });
   };
 
   return (

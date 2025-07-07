@@ -39,6 +39,10 @@ const EducationForm = ({ enableNext }) => {
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
+    enableNext(false);
+  }, []);
+
+  useEffect(() => {
     if (resumeInfo?.education?.length > 0) {
       const updated = resumeInfo.education.map((edu) => ({
         ...edu,
@@ -50,6 +54,7 @@ const EducationForm = ({ enableNext }) => {
   }, [resumeInfo]);
 
   const handleChange = (index, e) => {
+    enableNext(false);
     const { name, value } = e.target;
     const updated = [...educationList];
     updated[index][name] = value;
@@ -59,7 +64,6 @@ const EducationForm = ({ enableNext }) => {
       ...prev,
       education: updated.map(({ ...rest }) => rest),
     }));
-    enableNext(false);
   };
 
   const handleDescriptionChange = (index, e) => {
@@ -181,6 +185,7 @@ Focus on:
       })
       .finally(() => {
         setSaving(false);
+        enableNext(true);
       });
 
     setResumeInfo((prev) => ({

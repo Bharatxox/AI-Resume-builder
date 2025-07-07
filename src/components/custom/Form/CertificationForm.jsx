@@ -13,6 +13,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { format } from "date-fns";
+import { Checkbox } from "../../ui/checkbox";
 
 const CertificationForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -34,6 +35,11 @@ const CertificationForm = ({ enableNext }) => {
 
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [skip, setSkip] = useState(false);
+
+  useEffect(() => {
+    enableNext(false);
+  }, []);
 
   useEffect(() => {
     if (resumeInfo?.certification?.length > 0) {
@@ -47,6 +53,7 @@ const CertificationForm = ({ enableNext }) => {
   }, [resumeInfo]);
 
   const handleChange = (index, e) => {
+    enableNext(false);
     const { name, value } = e.target;
     const updated = [...certifications];
     updated[index][name] = value;
@@ -57,7 +64,6 @@ const CertificationForm = ({ enableNext }) => {
       ...prev,
       certification: updated.map((item) => ({ ...item })),
     }));
-    enableNext(false);
   };
 
   const handleAddCertification = () => {
@@ -79,13 +85,13 @@ const CertificationForm = ({ enableNext }) => {
   };
 
   const handleRemoveCertification = (idToRemove) => {
+    enableNext(false);
     const updated = certifications.filter((cert) => cert.id !== idToRemove);
     setCertifications(updated);
     setResumeInfo((prev) => ({
       ...prev,
       certification: updated.map((item) => ({ ...item })),
     }));
-    enableNext(false);
   };
 
   const handleGenerateFromAI = async (index) => {
@@ -141,6 +147,7 @@ Avoid markdown or bullet symbols.`;
       })
       .finally(() => {
         setSaving(false);
+        enableNext(true);
       });
 
     setResumeInfo((prev) => ({
@@ -151,6 +158,7 @@ Avoid markdown or bullet symbols.`;
 
   const handleDateChange = (index, field, value) => {
     if (!value) return;
+    enableNext(false);
     const formattedDate = format(value, "MMM yyyy"); // → "Jul 2025"
     const updatedList = [...certifications];
     updatedList[index][field] = formattedDate;
@@ -159,8 +167,6 @@ Avoid markdown or bullet symbols.`;
       ...prev,
       certification: updatedList.map(({ ...rest }) => rest),
     }));
-
-    enableNext(false);
   };
 
   return (
@@ -168,9 +174,28 @@ Avoid markdown or bullet symbols.`;
       className="p-5 shadow-lg rounded-lg border-t-purple-500 mt-5"
       style={{ borderTopWidth: "5px" }}
     >
-      <div className="max-w-xl mx-auto">
-        <h2 className="font-bold text-lg">Certifications</h2>
-        <p>List your professional certifications</p>
+      <div className="max-w-xl mx-auto flex justify-between">
+        <div className="">
+          <h2 className="font-bold text-lg">Certifications</h2>
+          <p>List your professional certifications</p>
+        </div>
+        <div className="flex items-center gap-2 justify-end">
+          <Checkbox
+            checked={skip}
+            onCheckedChange={(checked) => {
+              setSkip(checked);
+              enableNext(checked);
+              if (checked) {
+                // setCertifications([]);
+                setResumeInfo((prev) => ({
+                  ...prev,
+                  certification: [],
+                }));
+              }
+            }}
+          />
+          <Label>Skip this section</Label>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
@@ -183,6 +208,7 @@ Avoid markdown or bullet symbols.`;
                 value={cert.title}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -193,6 +219,7 @@ Avoid markdown or bullet symbols.`;
                 value={cert.organization}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -200,7 +227,7 @@ Avoid markdown or bullet symbols.`;
               <div className="grid gap-2">
                 <Label>Start Date *</Label>
                 <Popover>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild disabled={skip}>
                     <Button
                       variant="outline"
                       className="w-full justify-between text-left font-normal cursor-pointer"
@@ -226,7 +253,7 @@ Avoid markdown or bullet symbols.`;
               <div className="grid gap-2">
                 <Label>End Date *</Label>
                 <Popover>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild disabled={skip}>
                     <Button
                       variant="outline"
                       className="w-full justify-between text-left font-normal cursor-pointer"
@@ -258,7 +285,7 @@ Avoid markdown or bullet symbols.`;
                   type="button"
                   variant="outline"
                   onClick={() => handleGenerateFromAI(idx)}
-                  disabled={generating}
+                  disabled={generating || skip}
                 >
                   Generate from AI{" "}
                   {generating ? (
@@ -273,6 +300,7 @@ Avoid markdown or bullet symbols.`;
                 value={cert.description}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -283,6 +311,7 @@ Avoid markdown or bullet symbols.`;
                 value={cert.link}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
 
@@ -291,6 +320,7 @@ Avoid markdown or bullet symbols.`;
                 <Button
                   type="button"
                   variant="outline"
+                  disabled={skip}
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
                   onClick={() => handleRemoveCertification(cert.id)}
                 >
@@ -307,12 +337,16 @@ Avoid markdown or bullet symbols.`;
             type="button"
             variant="outline"
             onClick={handleAddCertification}
-            disabled={!certifications[certifications.length - 1].saved}
+            disabled={!certifications[certifications.length - 1].saved || skip}
           >
             <Plus />
             Add More Certification
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={saving}>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving || skip}
+          >
             {saving ? <Loader2 className="animate-spin" /> : "Save"}
           </Button>
         </div>

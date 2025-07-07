@@ -31,6 +31,11 @@ const WorkExperienceForm = ({ enableNext }) => {
   ]);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [skip, setSkip] = useState(false);
+
+  useEffect(() => {
+    enableNext(false);
+  }, []);
 
   useEffect(() => {
     if (resumeInfo?.experience?.length > 0) {
@@ -42,6 +47,16 @@ const WorkExperienceForm = ({ enableNext }) => {
       setExperiences(updated);
     }
   }, [resumeInfo]);
+
+  useEffect(() => {
+    if (skip) {
+      // Clear experience from context
+      setResumeInfo((prev) => ({
+        ...prev,
+        experience: [],
+      }));
+    }
+  }, [skip]);
 
   const handleChange = (index, e) => {
     const { name, value, type, checked } = e.target;
@@ -141,6 +156,7 @@ Translating design wireframes into high-quality, functional code.
       })
       .finally(() => {
         setSaving(false);
+        enableNext(true);
       });
 
     // Sync to context as well (optional but good)
@@ -164,9 +180,22 @@ Translating design wireframes into high-quality, functional code.
       className="p-5 shadow-lg rounded-lg border-t-sky-400 mt-5"
       style={{ borderTopWidth: "5px" }}
     >
-      <div className="max-w-xl mx-auto">
-        <h2 className="font-bold text-lg">Work Experience</h2>
-        <p>Fill in your work history</p>
+      <div className="max-w-xl mx-auto flex justify-between items-start">
+        <div>
+          <h2 className="font-bold text-lg">Work Experience</h2>
+          <p>Fill in your work history</p>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <Checkbox
+            name="SkipWorkExperience"
+            checked={skip}
+            onCheckedChange={(checked) => {
+              setSkip(checked);
+              enableNext(checked);
+            }}
+          />
+          <Label>Skip this section</Label>
+        </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {experiences.map((exp, idx) => (
@@ -181,6 +210,7 @@ Translating design wireframes into high-quality, functional code.
                   value={exp.title}
                   onChange={(e) => handleChange(idx, e)}
                   required
+                  disabled={skip}
                 />
               </div>
               <div className="grid gap-2">
@@ -192,6 +222,7 @@ Translating design wireframes into high-quality, functional code.
                   value={exp.companyName}
                   onChange={(e) => handleChange(idx, e)}
                   required
+                  disabled={skip}
                 />
               </div>
             </div>
@@ -206,6 +237,7 @@ Translating design wireframes into high-quality, functional code.
                   value={exp.city}
                   onChange={(e) => handleChange(idx, e)}
                   required
+                  disabled={skip}
                 />
               </div>
               <div className="grid gap-2">
@@ -217,6 +249,7 @@ Translating design wireframes into high-quality, functional code.
                   value={exp.state}
                   onChange={(e) => handleChange(idx, e)}
                   required
+                  disabled={skip}
                 />
               </div>
             </div>
@@ -231,6 +264,7 @@ Translating design wireframes into high-quality, functional code.
                   value={exp.startDate}
                   onChange={(e) => handleChange(idx, e)}
                   required
+                  disabled={skip}
                 />
               </div>
               <div className="grid gap-2">
@@ -239,7 +273,7 @@ Translating design wireframes into high-quality, functional code.
                   name="endDate"
                   value={exp.endDate}
                   onChange={(e) => handleChange(idx, e)}
-                  disabled={exp.currentlyWorking}
+                  disabled={exp.currentlyWorking || skip}
                 />
               </div>
             </div>
@@ -249,6 +283,7 @@ Translating design wireframes into high-quality, functional code.
                 name="currentlyWorking"
                 checked={exp.currentlyWorking}
                 onChange={(e) => handleChange(idx, e)}
+                disabled={skip}
                 onCheckedChange={(checked) => {
                   const e = {
                     target: {
@@ -272,7 +307,7 @@ Translating design wireframes into high-quality, functional code.
                   type="button"
                   variant="outline"
                   onClick={() => handleGenerateFromAI(idx)}
-                  disabled={generating}
+                  disabled={generating || skip}
                 >
                   Generate from AI{" "}
                   {generating ? (
@@ -287,6 +322,7 @@ Translating design wireframes into high-quality, functional code.
                 value={exp.workSummary}
                 onChange={(e) => handleChange(idx, e)}
                 required
+                disabled={skip}
               />
             </div>
             {exp.isNew && experiences.length > 1 && (
@@ -296,6 +332,7 @@ Translating design wireframes into high-quality, functional code.
                   type="button"
                   variant="outline"
                   onClick={() => handleRemoveExperience(exp.id)}
+                  disabled={skip}
                 >
                   <Trash />
                   Remove
@@ -311,13 +348,17 @@ Translating design wireframes into high-quality, functional code.
               type="button"
               variant="outline"
               onClick={handleAddExperience}
-              disabled={!experiences[experiences.length - 1].saved}
+              disabled={!experiences[experiences.length - 1].saved || skip}
             >
               <Plus />
               Add More Experience
             </Button>
 
-            <Button type="button" onClick={handleSubmit} disabled={saving}>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={saving || skip}
+            >
               {saving ? <Loader2 className="animate-spin" /> : "Save"}
             </Button>
           </div>
