@@ -62,7 +62,7 @@ const FormSection = () => {
       ) : null}
 
       {/* Skills Forms */}
-      <SkillsForm />
+      <SkillsForm enableNext={(v) => setEnableNext(v)} />
 
       {/* Education Form */}
       <EducationForm enableNext={(v) => setEnableNext(v)} />

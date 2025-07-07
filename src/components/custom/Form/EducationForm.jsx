@@ -13,7 +13,6 @@ import { generateContent } from "../../../../service/GeminiService";
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
 const EducationForm = ({ enableNext }) => {
