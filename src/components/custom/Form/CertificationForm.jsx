@@ -14,6 +14,7 @@ import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { format } from "date-fns";
 import { Checkbox } from "../../ui/checkbox";
+import { v4 as uuidv4 } from "uuid";
 
 const CertificationForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -21,7 +22,7 @@ const CertificationForm = ({ enableNext }) => {
 
   const [certifications, setCertifications] = useState([
     {
-      id: Date.now(),
+      certificationId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       organization: "",
       startDate: null,
@@ -71,7 +72,7 @@ const CertificationForm = ({ enableNext }) => {
     if (!last.saved) return;
 
     const newCert = {
-      id: Date.now() + Math.random(),
+      certificationId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       organization: "",
       startDate: null,
@@ -86,7 +87,9 @@ const CertificationForm = ({ enableNext }) => {
 
   const handleRemoveCertification = (idToRemove) => {
     enableNext(false);
-    const updated = certifications.filter((cert) => cert.id !== idToRemove);
+    const updated = certifications.filter(
+      (cert) => cert.certificationId !== idToRemove
+    );
     setCertifications(updated);
     setResumeInfo((prev) => ({
       ...prev,
@@ -134,9 +137,39 @@ Avoid markdown or bullet symbols.`;
     }));
     setCertifications(updated);
 
-    GlobalApi.UpdateResumeDetails(params?.resumeId, {
-      data: { certification: updated },
-    })
+    const data = {
+      data: {
+        certification: updated.map(
+          ({
+            certificationId,
+            title,
+            organization,
+            startDate,
+            endDate,
+            description,
+            link,
+            saved,
+            isNew,
+          }) => ({
+            certificationId,
+            title,
+            organization,
+            startDate: startDate
+              ? format(new Date(startDate), "yyyy-MM-dd")
+              : null,
+            endDate: endDate ? format(new Date(endDate), "yyyy-MM-dd") : null,
+            description,
+            link,
+            saved,
+            isNew,
+          })
+        ),
+      },
+    };
+
+    console.log("Payload being sent to Strapi:", JSON.stringify(data, null, 2));
+
+    GlobalApi.UpdateResumeDetails(params?.resumeId, data)
       .then(() => {
         toast.success("Certifications updated!");
         enableNext(true);
@@ -200,7 +233,10 @@ Avoid markdown or bullet symbols.`;
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {certifications.map((cert, idx) => (
-          <div key={cert.id} className="space-y-4 pt-4 border-b pb-4">
+          <div
+            key={cert.certificationId}
+            className="space-y-4 pt-4 border-b pb-4"
+          >
             <div className="grid gap-2">
               <Label>Certification Title *</Label>
               <Input
@@ -322,7 +358,9 @@ Avoid markdown or bullet symbols.`;
                   variant="outline"
                   disabled={skip}
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                  onClick={() => handleRemoveCertification(cert.id)}
+                  onClick={() =>
+                    handleRemoveCertification(cert.certificationId)
+                  }
                 >
                   <Trash className="mr-2 h-4 w-4" />
                   Remove

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import SummaryForm from "./Form/SummaryForm";
 import WorkExperienceForm from "./Form/WorkExperienceForm";
 import SkillsForm from "./Form/SkillsForm";
@@ -9,19 +9,55 @@ import HobbiesForm from "./Form/HobbiesForm";
 import LanguageForm from "./Form/LanguageForm";
 import PersonalDetailForm from "./Form/PersonalDetailForm";
 import { Button } from "../ui/button";
-import { ArrowRight, ArrowLeft, LayoutGrid } from "lucide-react";
+import { ArrowRight, ArrowLeft, LayoutGrid, Home } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import ThemeSelector from "./ThemeSelector";
+import GlobalApi from "../../../service/GlobalApi";
+import { toast } from "sonner";
+import { ResumeInfoContext } from "../../context/ResumeInfoContext";
 
 const FormSection = () => {
+  const params = useParams();
+  const { setResumeInfo } = useContext(ResumeInfoContext);
   const [activeFormIndex, setActiveFormIndex] = useState(1);
   const [enableNext, setEnableNext] = useState(false);
+  const [themeColor, setThemeColor] = useState("#00b894");
+
+  useEffect(() => {
+    UpdateThemeColor(themeColor);
+  }, [themeColor]);
+
+  const UpdateThemeColor = (color) => {
+    const data = {
+      data: {
+        themeColor: color,
+      },
+    };
+    GlobalApi.UpdateResumeDetails(params?.resumeId, data)
+      .then(() => {
+        toast.success("Theme color updated successfully!");
+        setResumeInfo((prev) => ({ ...prev, themeColor: color }));
+      })
+      .catch((error) => {
+        toast.error("Failed to update theme color.");
+        console.error("Failed to update theme color:", error);
+      });
+  };
 
   return (
     <div>
       <div className="flex justify-between">
-        <Button variant="outline">
-          <LayoutGrid />
-          Theme
-        </Button>
+        <div className="flex gap-2 items-center">
+          <Link to="/dashboard">
+            <Button>
+              <Home />
+            </Button>
+          </Link>
+          <ThemeSelector
+            themeColor={themeColor}
+            setThemeColor={setThemeColor}
+          />
+        </div>
         <div className="flex gap-2">
           {activeFormIndex > 1 && (
             <Button

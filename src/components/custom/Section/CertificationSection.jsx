@@ -1,21 +1,32 @@
+import { format } from "date-fns";
 import React from "react";
 
 const CertificationSection = ({ certification, themeColor }) => {
   return (
     <section>
-      <h2
-        className="text-xl font-semibold mb-2 border-b-2 pt-4 pb-2"
-        style={{ color: themeColor }}
-      >
-        Certification
-      </h2>
+      {certification?.length > 0 ? (
+        <h2
+          className="text-xl font-semibold mb-2 border-b-2 pt-4 pb-2"
+          style={{ color: themeColor }}
+        >
+          Certification
+        </h2>
+      ) : null}
       {certification?.map((cert) => (
         <div key={cert.id} className="mb-3">
           <div className="flex justify-between">
-            <h3 className="font-bold">{cert.title}</h3>
+            <h3 className="font-medium">{cert.title}</h3>
 
-            <p>
-              {cert.startDate} - {cert.endDate}
+            <p className="italic flex justify-between">
+              {cert.startDate
+                ? format(new Date(cert.startDate), "MMM-yyyy")
+                : ""}{" "}
+              –{" "}
+              {cert.currentlyWorking
+                ? "Present"
+                : cert.endDate
+                ? format(new Date(cert.endDate), "MMM-yyyy")
+                : ""}
             </p>
           </div>
           <div className="flex justify-between">

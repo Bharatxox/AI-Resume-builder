@@ -11,6 +11,7 @@ import GlobalApi from "../../../../service/GlobalApi";
 import { generateContent } from "../../../../service/GeminiService";
 import { TagsInput } from "react-tag-input-component";
 import { Checkbox } from "../../ui/checkbox";
+import { v4 as uuidv4 } from "uuid";
 
 const ProjectForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -18,7 +19,7 @@ const ProjectForm = ({ enableNext }) => {
 
   const [projects, setProjects] = useState([
     {
-      id: Date.now(),
+      projectId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       technologies: [],
       description: "",
@@ -68,7 +69,7 @@ const ProjectForm = ({ enableNext }) => {
     if (!last.saved) return;
 
     const newProj = {
-      id: Date.now() + Math.random(),
+      projectId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       technologies: [],
       description: "",
@@ -81,7 +82,7 @@ const ProjectForm = ({ enableNext }) => {
 
   const handleRemoveProject = (idToRemove) => {
     enableNext(false);
-    const updated = projects.filter((proj) => proj.id !== idToRemove);
+    const updated = projects.filter((proj) => proj.projectId !== idToRemove);
     setProjects(updated);
     setResumeInfo((prev) => ({
       ...prev,
@@ -95,8 +96,8 @@ const ProjectForm = ({ enableNext }) => {
       const proj = projects[index];
       const prompt = `Write a 4–6 line technical resume project description with line breaks but not extra sapce for the following:
 
-Project Title: ${proj.title}
-Technologies: ${proj.technologies?.join(", ")}
+Project Title: ${proj?.title}
+Technologies: ${proj?.technologies?.join(", ")}
 
 Requirements:
 - Use bullet-style format
@@ -137,9 +138,35 @@ Requirements:
 
     setProjects(updated);
 
-    GlobalApi.UpdateResumeDetails(params?.resumeId, {
-      data: { projects: updated },
-    })
+    const data = {
+      data: {
+        projects: updated.map(
+          ({
+            projectId,
+            title,
+            technologies,
+            description,
+            link,
+            saved,
+            isNew,
+          }) => ({
+            projectId: String(projectId),
+            title,
+            technologies: Array.isArray(technologies)
+              ? technologies.join(", ")
+              : technologies,
+            description,
+            link,
+            saved,
+            isNew,
+          })
+        ),
+      },
+    };
+
+    console.log("Payload being sent to Strapi:", JSON.stringify(data, null, 2));
+
+    GlobalApi.UpdateResumeDetails(params?.resumeId, data)
       .then((resp) => {
         console.log("Projects updated:", resp);
         enableNext(true);
@@ -190,7 +217,7 @@ Requirements:
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {projects.map((proj, idx) => (
-          <div key={proj.id} className="space-y-4 pt-4 border-b pb-4">
+          <div key={proj.projectId} className="space-y-4 pt-4 border-b pb-4">
             <div className="grid gap-2">
               <Label>Project Title *</Label>
               <Input
@@ -222,7 +249,7 @@ Requirements:
 
                   enableNext(false);
                 }}
-                name={`technologies-${proj.id}`}
+                name={`technologies-${proj.projectId}`}
                 placeHolder="Enter technology"
               />
             </div>
@@ -270,7 +297,7 @@ Requirements:
                   type="button"
                   variant="outline"
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                  onClick={() => handleRemoveProject(proj.id)}
+                  onClick={() => handleRemoveProject(proj.projectId)}
                   disabled={skip}
                 >
                   <Trash className="mr-2 h-4 w-4" />

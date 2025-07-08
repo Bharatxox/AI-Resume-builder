@@ -1,34 +1,42 @@
-const PersonalDetail = ({ resumeInfo }) => {
-  const { firstName, lastName, address, phone, email, social } =
+import React from "react";
+
+const PersonalDetail = ({ resumeInfo, themeColor }) => {
+  const { firstName, lastName, address, phone, email, linkedin, github } =
     resumeInfo || {};
 
+  const personalDetails = [
+    address,
+    email && (
+      <a href={`mailto:${email}`} className="text-blue-600 underline">
+        {email}
+      </a>
+    ),
+    phone,
+    linkedin && (
+      <a href={linkedin} className="text-blue-600 underline">
+        LinkedIn
+      </a>
+    ),
+    github && (
+      <a href={github} className="text-blue-600 underline">
+        GitHub
+      </a>
+    ),
+  ].filter(Boolean); // removes empty or undefined items
+
   return (
-    <div className="text-center space-y-1">
-      <h2 className="font-bold text-2xl">
+    <div className="text-center space-y-2">
+      <h2 className="font-bold text-2xl" style={{ color: themeColor }}>
         {firstName} {lastName}
       </h2>
-      <div className="flex text-center justify-center gap-2">
-        <p className="text-sm">{address} |</p>
-        <p className="text-sm">
-          <a href={`mailto:${email}`} className="text-blue-600 underline">
-            {email}
-          </a>{" "}
-          | {phone}
-        </p>
+      <div className="flex flex-wrap justify-center gap-2 text-sm text-center">
+        {personalDetails.map((item, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && <span className="text-gray-400">|</span>}
+            <span>{item}</span>
+          </React.Fragment>
+        ))}
       </div>
-      <p className="text-sm  flex justify-center gap-2">
-        {social?.linkedin && (
-          <a href={social?.linkedin} className="text-blue-600 underline">
-            LinkedIn
-          </a>
-        )}
-        {"|"}
-        {social?.github && (
-          <a href={social?.github} className="text-blue-600 underline">
-            GitHub
-          </a>
-        )}
-      </p>
     </div>
   );
 };

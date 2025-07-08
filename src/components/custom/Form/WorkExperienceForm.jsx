@@ -10,13 +10,18 @@ import { Loader2, Plus, Stars, Trash } from "lucide-react";
 import { generateContent } from "../../../../service/GeminiService";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
+import { ChevronDownIcon } from "lucide-react";
+import { Calendar } from "../../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
+import { format } from "date-fns";
+import { v4 as uuidv4 } from "uuid";
 
 const WorkExperienceForm = ({ enableNext }) => {
   const params = useParams();
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const [experiences, setExperiences] = useState([
     {
-      id: Date.now(),
+      experienceId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       companyName: "",
       city: "",
@@ -76,7 +81,7 @@ const WorkExperienceForm = ({ enableNext }) => {
     if (!last.saved) return; // Prevent adding unless last is saved
 
     const newExperience = {
-      id: Date.now() + Math.random(),
+      experienceId: uuidv4(), // Use uuidv4 for unique IDs
       title: "",
       companyName: "",
       city: "",
@@ -140,9 +145,44 @@ Translating design wireframes into high-quality, functional code.
 
     const data = {
       data: {
-        experience: updated.map(({ ...rest }) => rest), // omit `saved`
+        experience: updated.map(
+          ({
+            experienceId,
+            title,
+            companyName,
+            city,
+            state,
+            startDate,
+            endDate,
+            currentlyWorking,
+            workSummary,
+            isNew,
+            saved,
+          }) => ({
+            experienceId,
+            title,
+            companyName,
+            city,
+            state,
+            // Format correctly as YYYY-MM-DD (safe format for Strapi)
+            startDate: startDate
+              ? format(new Date(startDate), "yyyy-MM-dd")
+              : null,
+            endDate: currentlyWorking
+              ? null
+              : endDate
+              ? format(new Date(endDate), "yyyy-MM-dd")
+              : null,
+            currentlyWorking,
+            workSummary,
+            isNew,
+            saved,
+          })
+        ),
       },
     };
+
+    console.log("🚀 Sending to Strapi:", JSON.stringify(data, null, 2));
 
     GlobalApi.UpdateResumeDetails(params?.resumeId, data)
       .then((resp) => {
@@ -167,12 +207,28 @@ Translating design wireframes into high-quality, functional code.
   };
 
   const handleRemoveExperience = (idToRemove) => {
-    const updated = experiences.filter((exp) => exp.id !== idToRemove);
+    const updated = experiences.filter(
+      (exp) => exp.experienceId !== idToRemove
+    );
     setExperiences(updated);
     setResumeInfo((prev) => ({
       ...prev,
       experience: updated.map(({ ...rest }) => rest),
     }));
+  };
+
+  const handleDateChange = (index, field, value) => {
+    if (!value) return;
+    const formattedDate = format(value, "MMM yyyy"); // → "Jul 2025"
+    const updatedList = [...experiences];
+    updatedList[index][field] = formattedDate;
+    setExperiences(updatedList);
+    setResumeInfo((prev) => ({
+      ...prev,
+      experience: updatedList.map(({ ...rest }) => rest),
+    }));
+
+    enableNext(false);
   };
 
   return (
@@ -199,7 +255,10 @@ Translating design wireframes into high-quality, functional code.
       </div>
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {experiences.map((exp, idx) => (
-          <div key={exp.id} className="space-y-4 pt-4 border-1 rounded-lg p-5">
+          <div
+            key={exp.experienceId}
+            className="space-y-4 pt-4 border-1 rounded-lg p-5"
+          >
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>
@@ -256,25 +315,59 @@ Translating design wireframes into high-quality, functional code.
 
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
-                <Label>
-                  Start Date <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  name="startDate"
-                  value={exp.startDate}
-                  onChange={(e) => handleChange(idx, e)}
-                  required
-                  disabled={skip}
-                />
+                <Label>Start Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild disabled={skip}>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal cursor-pointer"
+                    >
+                      {exp.startDate
+                        ? format(new Date(exp.startDate), "MMMM yyyy")
+                        : `Select Date`}
+                      <ChevronDownIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={exp.startDate}
+                      onSelect={(date) =>
+                        handleDateChange(idx, "startDate", date)
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid gap-2">
-                <Label>End Date</Label>
-                <Input
-                  name="endDate"
-                  value={exp.endDate}
-                  onChange={(e) => handleChange(idx, e)}
-                  disabled={exp.currentlyWorking || skip}
-                />
+                <Label>End Date *</Label>
+                <Popover>
+                  <PopoverTrigger
+                    asChild
+                    disabled={exp.currentlyWorking || skip}
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal cursor-pointer"
+                    >
+                      {exp.endDate
+                        ? format(new Date(exp.endDate), "MMMM yyyy")
+                        : "Select Date"}
+                      <ChevronDownIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={exp.endDate}
+                      onSelect={(date) =>
+                        handleDateChange(idx, "endDate", date)
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -331,7 +424,7 @@ Translating design wireframes into high-quality, functional code.
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
                   type="button"
                   variant="outline"
-                  onClick={() => handleRemoveExperience(exp.id)}
+                  onClick={() => handleRemoveExperience(exp.experienceId)}
                   disabled={skip}
                 >
                   <Trash />

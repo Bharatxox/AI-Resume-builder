@@ -8,13 +8,20 @@ import { TagsInput } from "react-tag-input-component";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
 import GlobalApi from "../../../../service/GlobalApi";
+import { v4 as uuidv4 } from "uuid";
 
 const SkillsForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
   const params = useParams();
 
   const [skills, setSkills] = useState([
-    { id: Date.now(), title: "", items: [], saved: false, isNew: true },
+    {
+      skillsId: uuidv4(), // Use uuidv4 for unique IDs
+      title: "",
+      items: [],
+      saved: false,
+      isNew: true,
+    },
   ]);
   const [saving, setSaving] = useState(false);
   const [skillsInitialized, setSkillsInitialized] = useState(false);
@@ -23,7 +30,7 @@ const SkillsForm = ({ enableNext }) => {
     if (!skillsInitialized && resumeInfo?.skills?.length > 0) {
       const loaded = resumeInfo.skills.map((s) => ({
         ...s,
-        id: Date.now() + Math.random(),
+        skillsId: s.skillsId || String(Date.now() + Math.random()),
         saved: true,
         isNew: true,
       }));
@@ -58,29 +65,13 @@ const SkillsForm = ({ enableNext }) => {
     enableNext(false);
   };
 
-  // const handleChange = (index, e) => {
-  //   const { name, value } = e.target;
-  //   const updated = [...skills];
-  //   // if (updated[index][field] === value) return;
-  //   updated[index][name] = value;
-  //   updated[index].saved = false;
-  //   setSkills(updated);
-
-  //   // const cleanData = updated.map(({ ...rest }) => rest);
-  //   setResumeInfo((prev) => ({
-  //     ...prev,
-  //     skills: updated.map((item) => ({ ...item })),
-  //   }));
-  //   enableNext(false);
-  // };
-
   const handleAddSkillGroup = () => {
     const last = skills[skills.length - 1];
     if (!last.saved) return;
     setSkills([
       ...skills,
       {
-        id: Date.now() + Math.random(),
+        skillsId: uuidv4(), // Use uuidv4 for unique IDs
         title: "",
         items: [],
         saved: false,
@@ -90,7 +81,7 @@ const SkillsForm = ({ enableNext }) => {
   };
 
   const handleRemoveSkillGroup = (id) => {
-    const updated = skills.filter((s) => s.id !== id);
+    const updated = skills.filter((s) => s.skillsId !== id);
     setSkills(updated);
     const cleanData = updated.map(({ ...rest }) => rest);
     setResumeInfo((prev) => ({ ...prev, skills: cleanData }));
@@ -102,18 +93,24 @@ const SkillsForm = ({ enableNext }) => {
     const updated = skills.map((s) => ({ ...s, saved: true }));
     setSkills(updated);
 
-    const payload = {
+    const data = {
       data: {
-        skills: updated.map(({ ...rest }) => rest),
+        skills: updated.map(({ skillsId, title, items, saved, isNew }) => ({
+          skillsId,
+          title,
+          items,
+          saved,
+          isNew,
+        })),
       },
     };
 
-    GlobalApi.UpdateResumeDetails(params?.resumeId, payload)
+    GlobalApi.UpdateResumeDetails(params?.resumeId, data)
       .then(() => {
         toast.success("Skills updated!");
         setResumeInfo((prev) => ({
           ...prev,
-          skills: payload.data.skills,
+          skills: data.data.skills,
         }));
         enableNext(true);
       })
@@ -141,7 +138,7 @@ const SkillsForm = ({ enableNext }) => {
         onSubmit={(e) => e.preventDefault()}
       >
         {skills.map((skill, idx) => (
-          <div key={skill.id} className="space-y-4 p-4 border rounded-lg">
+          <div key={skill.skillsId} className="space-y-4 p-4 border rounded-lg">
             <div className="grid gap-2">
               <Label>Category Title *</Label>
               <Input
@@ -157,7 +154,7 @@ const SkillsForm = ({ enableNext }) => {
               <TagsInput
                 value={Array.isArray(skill.items) ? skill.items : []}
                 onChange={(tags) => handleChangeItems(idx, tags)}
-                name={`skills-${skill.id}`}
+                name={`skills-${skill.skillsId}`}
                 placeHolder="Enter a skill"
               />
             </div>
@@ -168,7 +165,7 @@ const SkillsForm = ({ enableNext }) => {
                   type="button"
                   variant="outline"
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                  onClick={() => handleRemoveSkillGroup(skill.id)}
+                  onClick={() => handleRemoveSkillGroup(skill.skillsId)}
                 >
                   <Trash className="mr-2 h-4 w-4" />
                   Remove

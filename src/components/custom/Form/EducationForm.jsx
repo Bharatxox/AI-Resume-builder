@@ -14,6 +14,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "../../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { format } from "date-fns";
+import { v4 as uuidv4 } from "uuid";
 
 const EducationForm = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext);
@@ -21,7 +22,7 @@ const EducationForm = ({ enableNext }) => {
 
   const [educationList, setEducationList] = useState([
     {
-      id: Date.now(),
+      educationId: uuidv4(),
       universityName: "",
       startDate: null,
       endDate: null,
@@ -46,6 +47,7 @@ const EducationForm = ({ enableNext }) => {
     if (resumeInfo?.education?.length > 0) {
       const updated = resumeInfo.education.map((edu) => ({
         ...edu,
+        educationId: edu.educationId || String(Date.now() + Math.random()), // fallback if missing
         saved: true,
         isNew: true,
       }));
@@ -82,7 +84,7 @@ const EducationForm = ({ enableNext }) => {
     setEducationList([
       ...educationList,
       {
-        id: Date.now() + Math.random(),
+        educationId: uuidv4(),
         universityName: "",
         startDate: null,
         endDate: null,
@@ -99,7 +101,9 @@ const EducationForm = ({ enableNext }) => {
   };
 
   const handleRemoveEducation = (idToRemove) => {
-    const updated = educationList.filter((edu) => edu.id !== idToRemove);
+    const updated = educationList.filter(
+      (edu) => edu.educationId !== idToRemove
+    );
     setEducationList(updated);
     setResumeInfo((prev) => ({
       ...prev,
@@ -169,9 +173,28 @@ Focus on:
 
     const data = {
       data: {
-        education: updated.map(({ ...rest }) => rest),
+        education: updated.map((edu) => ({
+          educationId: String(edu.educationId),
+          universityName: edu.universityName,
+          degree: edu.degree,
+          major: edu.major,
+          cgpa: edu.cgpa ? parseFloat(edu.cgpa) : null,
+          percentage: edu.percentage ? parseFloat(edu.percentage) : null,
+          gradeType: edu.gradeType,
+          description: edu.description,
+          saved: true,
+          isNew: true,
+          startDate: edu.startDate
+            ? format(new Date(edu.startDate), "yyyy-MM-dd")
+            : null,
+          endDate: edu.endDate
+            ? format(new Date(edu.endDate), "yyyy-MM-dd")
+            : null,
+        })),
       },
     };
+
+    console.log("Payload being sent to Strapi:", JSON.stringify(data, null, 2));
 
     GlobalApi.UpdateResumeDetails(params?.resumeId, data)
       .then((resp) => {
@@ -220,7 +243,10 @@ Focus on:
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
         {educationList.map((edu, idx) => (
-          <div key={edu.id} className="space-y-4 p-4 border-1 rounded-lg py-6">
+          <div
+            key={edu.educationId}
+            className="space-y-4 p-4 border-1 rounded-lg py-6"
+          >
             <div className="grid gap-2">
               <Label>University Name *</Label>
               <Input
@@ -384,7 +410,7 @@ Focus on:
                   type="button"
                   variant="outline"
                   className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                  onClick={() => handleRemoveEducation(edu.id)}
+                  onClick={() => handleRemoveEducation(edu.educationId)}
                 >
                   <Trash />
                   Remove

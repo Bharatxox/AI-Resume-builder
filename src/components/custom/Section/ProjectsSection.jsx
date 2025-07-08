@@ -3,16 +3,18 @@ import React from "react";
 const ProjectsSection = ({ projects, themeColor }) => {
   return (
     <section>
-      <h2
-        className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
-        style={{ color: themeColor }}
-      >
-        Projects
-      </h2>
+      {projects?.length > 0 && (
+        <h2
+          className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
+          style={{ color: themeColor }}
+        >
+          Projects
+        </h2>
+      )}
       {projects?.map((project) => (
         <div key={project.id} className="mb-4">
           <div className="flex justify-between">
-            <h3 className="font-bold">{project.title}</h3>
+            <h3 className="font-medium">{project.title}</h3>
             {project.link && (
               <a
                 href={project.link}
@@ -24,7 +26,15 @@ const ProjectsSection = ({ projects, themeColor }) => {
               </a>
             )}
           </div>
-          <p className="italic">{project.technologies.join(" | ")}</p>
+          <p className="italic">
+            {(Array.isArray(project.technologies)
+              ? project.technologies
+              : typeof project.technologies === "string"
+              ? project.technologies.split(",").map((t) => t.trim())
+              : []
+            ).join(" | ")}
+          </p>
+
           <ul className="list-disc pl-6">
             {project.description
               .split("\n")

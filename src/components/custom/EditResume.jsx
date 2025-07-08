@@ -3,16 +3,26 @@ import { useParams } from "react-router-dom";
 import FormSection from "./FormSection";
 import ResumePreview from "./ResumePreview";
 import { ResumeInfoContext } from "../../context/ResumeInfoContext";
-import dummy2 from "../../data/dummy2";
+import GlobalApi from "../../../service/GlobalApi";
 
 const EditResume = () => {
-  const params = useParams();
-  const [resumeInfo, setResumeInfo] = useState(dummy2);
+  const { resumeId } = useParams();
+  const [resumeInfo, setResumeInfo] = useState();
 
   useEffect(() => {
-    setResumeInfo(dummy2);
-    console.log(params.resumeId);
+    GetResumeInfo();
   }, []);
+
+  const GetResumeInfo = () => {
+    GlobalApi.GetResumeBuId(resumeId)
+      .then((response) => {
+        console.log("DATA:", response.data.data);
+        setResumeInfo(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching resume data:", error);
+      });
+  };
 
   return (
     <ResumeInfoContext.Provider value={{ resumeInfo, setResumeInfo }}>

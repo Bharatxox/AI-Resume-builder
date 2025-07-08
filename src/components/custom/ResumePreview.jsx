@@ -18,7 +18,10 @@ const ResumePreview = () => {
       style={{ borderColor: resumeInfo?.themeColor }}
     >
       {/* Personal Detail */}
-      <PersonalDetail resumeInfo={resumeInfo} />
+      <PersonalDetail
+        resumeInfo={resumeInfo}
+        themeColor={resumeInfo?.themeColor}
+      />
       {/* Summary */}
       <SummarySection
         summary={resumeInfo?.summary}
