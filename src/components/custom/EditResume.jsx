@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ArrowRight,
   FileDownIcon,
+  Fullscreen,
   LucideCloudCheck,
   MoreHorizontalIcon,
 } from "lucide-react";
@@ -22,15 +23,16 @@ const EditResume = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [zoomLevel, setZoomLevel] = useState("small");
+  const [hover, sethover] = useState(false);
   // const totalPages = pages.length;
 
   useEffect(() => {
     GetResumeInfo();
   }, []);
 
-  // useEffect(() => {
-  //   setTotalPages(pages.length);
-  // }, [pages]);
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [resumeInfo]);
 
   const GetResumeInfo = () => {
     GlobalApi.GetResumeBuId(resumeId)
@@ -69,7 +71,7 @@ const EditResume = () => {
             <FormSection />
           </div>
           {/* Preview Section */}
-          <div className="bg-slate-100 p-6 px-30 h-screen overflow-y-auto">
+          <div className="bg-slate-100 p-6 xl:px-30 lg:px-20 md:px-10 h-screen overflow-y-auto">
             <div className="flex justify-end gap-2 mb-4">
               <Button>
                 Downlode <FileDownIcon />
@@ -78,11 +80,27 @@ const EditResume = () => {
                 <MoreHorizontalIcon />
               </Button>
             </div>
-            <div>
+            {/* <div>
               <Button onClick={() => setZoomLevel("small")}>Small View</Button>
               <Button onClick={() => setZoomLevel("large")}>Full View</Button>
-            </div>
-            <div>
+            </div> */}
+            <div
+              className="relative"
+              onMouseEnter={() => sethover(true)}
+              onMouseLeave={() => sethover(false)}
+            >
+              <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                <Button
+                  className="rounded-full w-10 h-10 transition-all transform hover:scale-110 group-hover:scale-110"
+                  onClick={() => setZoomLevel("large")}
+                  style={{
+                    display: hover ? "flex" : "none",
+                    position: "absolute",
+                  }}
+                >
+                  <Fullscreen className="w-10 h-10" />
+                </Button>
+              </div>
               <ResumePreview
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
