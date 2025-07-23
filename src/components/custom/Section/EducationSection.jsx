@@ -1,24 +1,28 @@
 import React from "react";
 import { format } from "date-fns";
+import { getFontSizes } from "../../../utility/fontSizes"; // Adjust path if needed
 
-const EducationSection = ({ education, themeColor }) => {
+const EducationSection = ({ education, themeColor, zoomLevel }) => {
+  const { heading, subheading, text } = getFontSizes(zoomLevel);
+
   return (
-    <section>
-      {education?.length > 0 ? (
+    <section className={`${text}`}>
+      {education?.length > 0 && (
         <h2
-          className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
+          className={`font-semibold pb-2 mb-2 border-b-2 pt-4 ${heading}`}
           style={{ color: themeColor }}
         >
           Education
         </h2>
-      ) : null}
+      )}
+
       {education?.map((edu) => (
         <div key={edu.id} className="mb-3">
           <div className="flex justify-between">
-            <h3 className="font-medium">
+            <h3 className={`font-medium ${subheading}`}>
               {edu.degree}, {edu.major}
             </h3>
-            <p className="italic flex justify-between">
+            <p className="italic">
               {edu.startDate ? format(new Date(edu.startDate), "MMM yyyy") : ""}{" "}
               –{" "}
               {edu.currentlyWorking

@@ -1,11 +1,14 @@
 import React from "react";
+import { getFontSizes } from "../../../utility/fontSizes"; // adjust path if needed
 
-const ProjectsSection = ({ projects, themeColor }) => {
+const ProjectsSection = ({ projects, themeColor, zoomLevel }) => {
+  const { heading, subheading, text } = getFontSizes(zoomLevel);
+
   return (
-    <section>
+    <section className={`${text}`}>
       {projects?.length > 0 && (
         <h2
-          className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
+          className={`font-semibold pb-2 mb-2 border-b-2 pt-4 ${heading}`}
           style={{ color: themeColor }}
         >
           Projects
@@ -14,7 +17,7 @@ const ProjectsSection = ({ projects, themeColor }) => {
       {projects?.map((project) => (
         <div key={project.id} className="mb-4">
           <div className="flex justify-between">
-            <h3 className="font-medium">{project.title}</h3>
+            <h3 className={`font-medium ${subheading}`}>{project.title}</h3>
             {project.link && (
               <a
                 href={project.link}

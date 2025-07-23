@@ -9,12 +9,13 @@ import HobbiesForm from "./Form/HobbiesForm";
 import LanguageForm from "./Form/LanguageForm";
 import PersonalDetailForm from "./Form/PersonalDetailForm";
 import { Button } from "../ui/button";
-import { ArrowRight, ArrowLeft, LayoutGrid, Home } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { ArrowRight, ArrowLeft, LayoutGrid, Home, View } from "lucide-react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import ThemeSelector from "./ThemeSelector";
 import GlobalApi from "../../../service/GlobalApi";
 import { toast } from "sonner";
 import { ResumeInfoContext } from "../../context/ResumeInfoContext";
+import ViewResume from "./ViewResume";
 
 const FormSection = () => {
   const params = useParams();
@@ -125,6 +126,11 @@ const FormSection = () => {
       {/* Language Form */}
       {activeFormIndex == 9 ? (
         <LanguageForm enableNext={(v) => setEnableNext(v)} />
+      ) : null}
+
+      {/* Resume View */}
+      {activeFormIndex == 10 ? (
+        <Navigate to={`/my-resume/${params?.resumeId}/view`} />
       ) : null}
     </div>
   );

@@ -1,23 +1,28 @@
 import { format } from "date-fns";
+import React from "react";
+import { getFontSizes } from "../../../utility/fontSizes"; // Adjust path if necessary
 
-const WorkExperience = ({ experience, themeColor }) => {
+const WorkExperience = ({ experience, themeColor, zoomLevel }) => {
+  const { heading, subheading, text } = getFontSizes(zoomLevel);
+
   return (
-    <section>
+    <section className={`${text}`}>
       {experience?.length > 0 && (
         <h2
-          className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
+          className={`font-semibold pb-2 mb-2 border-b-2 pt-4 ${heading}`}
           style={{ color: themeColor }}
         >
           Work Experience
         </h2>
       )}
+
       {experience?.map((exp) => (
         <div key={exp.id} className="mb-4">
           <div className="flex justify-between">
-            <h3 className="font-semibold">
+            <h3 className={`font-semibold ${subheading}`}>
               {exp.title}, {exp.companyName}
             </h3>
-            <p className="italic">
+            <p className={`italic ${text}`}>
               {exp.startDate ? format(new Date(exp.startDate), "MMM yyyy") : ""}{" "}
               –{" "}
               {exp.currentlyWorking
@@ -27,11 +32,11 @@ const WorkExperience = ({ experience, themeColor }) => {
                 : ""}
             </p>
           </div>
-          <p className="italic flex justify-between">
-            <p>
-              {exp.city}, {exp.state}
-            </p>{" "}
+
+          <p className={`italic ${text}`}>
+            {exp.city}, {exp.state}
           </p>
+
           <ul className="list-disc pl-6">
             {exp.workSummary
               .split("\n")

@@ -118,3 +118,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+.a4-page {
+  width: 210mm;
+  height: 297mm;
+  margin: auto;
+  background: white;
+  padding: 20mm;
+  box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  overflow: hidden;
+  page-break-after: always;
+}

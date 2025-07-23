@@ -1,11 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { getFontSizes } from "../../../utility/fontSizes"; // adjust path if needed
 
-const SummarySection = ({ summary, themeColor }) => {
+const SummarySection = ({ summary, themeColor, zoomLevel }) => {
+  const { heading, text } = getFontSizes(zoomLevel);
+
+  useEffect(() => {
+    console.log("Zoom level:", zoomLevel);
+    console.log("Font size class:", heading, text);
+  });
+
   return (
-    <section>
+    <section className={`${text}`}>
       {summary && (
         <h2
-          className="text-xl font-semibold pb-2 mb-2 border-b-2 pt-4"
+          className={`font-semibold pb-1 mb-1 border-b-1 pt-4 ${heading}`}
           style={{ color: themeColor }}
         >
           Summary

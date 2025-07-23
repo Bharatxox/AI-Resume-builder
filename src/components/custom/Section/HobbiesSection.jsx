@@ -1,11 +1,14 @@
 import React from "react";
+import { getFontSizes } from "../../../utility/fontSizes"; // adjust path if needed
 
-const HobbiesSection = ({ hobbies, themeColor }) => {
+const HobbiesSection = ({ hobbies, themeColor, zoomLevel }) => {
+  const { heading, text } = getFontSizes(zoomLevel);
+
   return (
-    <section>
+    <section className={`${text}`}>
       {hobbies?.length > 0 && (
         <h2
-          className="text-xl font-semibold mb-2 border-b-2 pt-4 pb-2"
+          className={`font-semibold mb-2 border-b-2 pt-4 pb-2 ${heading}`}
           style={{ color: themeColor }}
         >
           Hobbies

@@ -1,6 +1,8 @@
 import React from "react";
+import { getFontSizes } from "../../../utility/fontSizes";
 
-const PersonalDetail = ({ resumeInfo, themeColor }) => {
+const PersonalDetail = ({ resumeInfo, themeColor, zoomLevel }) => {
+  const { text, mainHeading } = getFontSizes(zoomLevel);
   const { firstName, lastName, address, phone, email, linkedin, github } =
     resumeInfo || {};
 
@@ -25,11 +27,13 @@ const PersonalDetail = ({ resumeInfo, themeColor }) => {
   ].filter(Boolean); // removes empty or undefined items
 
   return (
-    <div className="text-center space-y-2">
-      <h2 className="font-bold text-2xl" style={{ color: themeColor }}>
+    <div className={`text-center ${text}`}>
+      <h2 className={`font-bold ${mainHeading}`} style={{ color: themeColor }}>
         {firstName} {lastName}
       </h2>
-      <div className="flex flex-wrap justify-center gap-2 text-sm text-center">
+      <div
+        className={`flex flex-wrap justify-center gap-x-1 text-center px-15`}
+      >
         {personalDetails.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && <span className="text-gray-400">|</span>}
